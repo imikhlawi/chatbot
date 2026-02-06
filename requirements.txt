@@ -1,0 +1,20 @@
+# PDF-Chatbot mit RAG (Retrieval-Augmented Generation)
+# Python 3.8+
+
+# LangChain (RAG, Chains, Embeddings, Vector Stores)
+langchain>=0.0.350,<0.2
+
+# Embeddings (lokal, kein API-Key)
+sentence-transformers>=2.2.0
+
+# Vector-Store (lokal, FAISS)
+faiss-cpu>=1.7.0
+
+# PDF laden
+pypdf>=3.0.0
+
+# NLTK (wird von sentence-transformers benötigt)
+nltk>=3.8.0
+
+# Lokales LLM (GGUF über llama.cpp)
+llama-cpp-python>=0.2.0

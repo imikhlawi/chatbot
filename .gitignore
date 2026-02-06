@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Modell (nicht hochladen – zu groß, Nutzer laden selbst)
+llm_model/*.gguf
+llm_model/*.bin
+
+# PDF-Dateien (nicht hochladen – Nutzer legen eigene PDFs in data/)
+data/*.pdf
+
+# Vector-Store (wird lokal aus PDFs neu erzeugt)
+faiss_index/
+
+# Caches
+.cache/
+*.cache
+llm_model/.cache/
+
+# Umgebung / IDE
+.venv/
+venv/
+.env
+.env.local
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
