@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+from typing import List, Optional
 
 
 class Settings(BaseSettings):
@@ -15,8 +15,27 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: str = "http://localhost:3000"
 
+    # Chroma (Docker: chroma:8000, lokal: 127.0.0.1:8001)
+    CHROMA_HOST: str = "127.0.0.1"
+    CHROMA_PORT: int = 8001
+    CHROMA_COLLECTION: str = "pdf_chatbot"
+
+    # RAG
+    RAG_TOP_K: int = 4
+    RAG_MAX_CONTEXT_CHARS: int = 12000
+    RAG_MAX_CHUNKS_PER_INGEST: int = 2000
+    MAX_UPLOAD_MB: int = 50
+
+    # Optional: wenn gesetzt, wird X-API-Key Header verlangt
+    API_KEY: Optional[str] = None
+
     def cors_origins_list(self) -> List[str]:
         return [x.strip() for x in self.CORS_ORIGINS.split(",") if x.strip()]
 
 
 settings = Settings()
+
+
+def get_settings() -> Settings:
+    """Für Dependency Injection oder direkten Zugriff (z. B. in deps-Router)."""
+    return settings

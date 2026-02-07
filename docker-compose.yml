@@ -36,6 +36,9 @@ services:
       - chroma
     environment:
       - ENV=local
+      # Im Docker-Netz: Chroma unter Servicename, Container-Port 8000
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
     volumes:
       - ./apps/api/app:/app/app
       - ./apps/api/.env:/app/.env

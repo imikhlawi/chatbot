@@ -54,3 +54,8 @@ body.json
 *.temp
 *.bak
 *.log
+
+# Intern / nur für lokale Entwicklung (nicht ins Repo)
+TEST-BEFEHLE.md
+BEFEHLE-KI-TEST.md
+scripts/

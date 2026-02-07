@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --no-cache-dir -U pip
 
+# Zuerst PyTorch CPU-only (spart ~600 MB CUDA-Downloads; sentence-transformers nutzt es danach)
+#RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 

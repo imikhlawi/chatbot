@@ -14,11 +14,17 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ## Endpoints
 
 - `GET /health` → `{"status":"ok"}`
-- `POST /api/text/briefing` → Smart Briefing (JSON, Pydantic-validiert)
+- `GET /health/deps` → Status von LLM, Chroma, Embeddings (für Diagnose)
+- `POST /api/text/briefing` → Smart Briefing (JSON)
+- **RAG:** `POST /api/rag/ingest` (PDF-Upload), `POST /api/rag/chat`, `GET /api/rag/docs`, `DELETE /api/rag/docs/{doc_id}`
 
 ## Konfiguration
 
-`.env` im Ordner `apps/api/`. Wichtig: `LLM_BASE_URL` (z. B. `http://127.0.0.1:8080`) und ggf. Port anpassen.
+`.env` im Ordner `apps/api/`. Siehe `.env.example`.
+
+- **LLM:** `LLM_BASE_URL` (lokal `http://127.0.0.1:8080`, Docker `http://llm:8080`)
+- **Chroma:** `CHROMA_HOST` / `CHROMA_PORT` (Docker: `chroma` / `8000`, lokal: `127.0.0.1` / `8001`)
+- **RAG:** `RAG_TOP_K`, `RAG_MAX_CONTEXT_CHARS`, `MAX_UPLOAD_MB`; optional `API_KEY` (dann Header `X-API-Key`)
 
 ## Abhängigkeiten
 
@@ -77,8 +83,15 @@ pip install requests
 python test_api.py
 ```
 
-Das Skript testet zuerst `/health`, dann `/api/text/briefing`. Wenn die API nicht läuft: Hinweis „API nicht erreichbar“. Wenn der LLM-Server nicht läuft: Briefing-Teil schlägt mit 502 fehl.
+### 5. RAG testen (Ingest + Chat)
+
+```bash
+python test_rag.py                  # nur Health-Deps + Chat
+python test_rag.py path/to/file.pdf # zusätzlich PDF ingest, dann Chat
+```
+
+Oder **PowerShell:** `.\scripts\test-rag.ps1` (Health-Deps, /api/rag/docs, Chat). PDF-Upload am besten über Swagger oder `test_rag.py`.
 
 ---
 
-**Kurz:** Zuerst **/health** prüfen (beweist, dass die API läuft). **/api/text/briefing** funktioniert nur, wenn zusätzlich der LLM-Server (z. B. llama.cpp) unter der in `.env` eingetragenen URL läuft. Bei 502: LLM-Server starten bzw. `LLM_BASE_URL` und Endpoint prüfen.
+**Kurz:** **/health** und **/health/deps** prüfen. **Briefing** braucht LLM; **RAG** braucht Chroma + Embeddings (beim Start geladen) + optional LLM für Chat. Bei 502: LLM prüfen. Bei 503: Chroma prüfen.
