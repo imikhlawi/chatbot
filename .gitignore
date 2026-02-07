@@ -35,6 +35,9 @@ venv/
 *.swp
 *.swo
 
+# API (sensible Konfiguration bleibt lokal)
+apps/api/.env
+
 # OS
 .DS_Store
 Thumbs.db
