@@ -15,6 +15,12 @@ build/
 # Modell (nicht hochladen – zu groß, Nutzer laden selbst)
 llm_model/*.gguf
 llm_model/*.bin
+storage/models/*.gguf
+storage/models/*.bin
+
+# Chroma persistent (lokal befüllt)
+storage/chroma/*
+!storage/chroma/.gitkeep
 
 # PDF-Dateien (nicht hochladen – Nutzer legen eigene PDFs in data/)
 data/*.pdf
@@ -41,3 +47,10 @@ apps/api/.env
 # OS
 .DS_Store
 Thumbs.db
+
+# Temporäre Testdateien (z. B. curl -d @body.json)
+body.json
+*.tmp
+*.temp
+*.bak
+*.log

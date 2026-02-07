@@ -4,8 +4,10 @@ FastAPI-Backend für Smart Briefing. Läuft lokal, ruft einen **lokalen LLM-Serv
 
 ## Start
 
-```powershell
-cd P:\Chatbot\apps\api
+Aus dem Projektroot (Ordner, in dem `docker-compose.yml` liegt):
+
+```bash
+cd apps/api
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -30,8 +32,8 @@ pip install -r requirements.txt
 
 ### 1. API starten (Terminal 1)
 
-```powershell
-cd P:\Chatbot\apps\api
+```bash
+cd apps/api
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -69,8 +71,8 @@ curl -X POST "http://127.0.0.1:8000/api/text/briefing" -H "Content-Type: applica
 
 ### 4. Test mit Python-Skript
 
-```powershell
-cd P:\Chatbot\apps\api
+```bash
+cd apps/api
 pip install requests
 python test_api.py
 ```

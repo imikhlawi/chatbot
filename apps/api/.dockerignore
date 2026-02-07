@@ -1,0 +1,29 @@
+# Lokale Umgebung (wird per Volume gemountet)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.venv
+venv
+.env
+
+# Git / IDE
+.git
+.gitignore
+.dockerignore
+*.md
+
+# Tests (optional im Image)
+test_*.py
+tests
+pytest.ini
+
+# Sonstiges
+*.egg-info
+dist
+build
