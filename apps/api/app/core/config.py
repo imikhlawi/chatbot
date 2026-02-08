@@ -13,18 +13,22 @@ class Settings(BaseSettings):
     LLM_BASE_URL: str = "http://127.0.0.1:8080"
     LLM_TIMEOUT_SECONDS: int = 300
 
-    CORS_ORIGINS: str = "http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     # Chroma (Docker: chroma:8000, lokal: 127.0.0.1:8001)
     CHROMA_HOST: str = "127.0.0.1"
     CHROMA_PORT: int = 8001
     CHROMA_COLLECTION: str = "pdf_chatbot"
 
-    # RAG
+    # RAG (Central Source of Truth – Limits gegen riesige PDFs / RAM)
+    EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
+    MAX_UPLOAD_MB: int = 50
+    CHUNK_SIZE: int = 1000
+    CHUNK_OVERLAP: int = 200
+    RAG_MAX_CHUNKS: int = 5000
     RAG_TOP_K: int = 4
     RAG_MAX_CONTEXT_CHARS: int = 12000
-    RAG_MAX_CHUNKS_PER_INGEST: int = 2000
-    MAX_UPLOAD_MB: int = 50
+    RAG_MAX_CHUNKS_PER_INGEST: int = 2000  # Alias
 
     # Optional: wenn gesetzt, wird X-API-Key Header verlangt
     API_KEY: Optional[str] = None

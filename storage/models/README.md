@@ -1,17 +1,17 @@
 # GGUF-Modelle
 
-Hier das Modell ablegen, z. B.:
+Hier das **LLM-Modell** ablegen (z. B. für Docker).
 
-`qwen2.5-coder-32b-instruct-q4_k_m.gguf`
+**Dateiname:** In `docker-compose.yml` ist derzeit z. B. `qwen2.5-coder-32b-instruct-q4_k_m.gguf` eingetragen. Modell entsprechend benennen oder `docker-compose.yml` anpassen.
 
-Kopieren z. B. aus `llm_model/` in diesen Ordner (aus dem Projektroot):
+**Beispiel (Projektroot):**
 
 ```bash
-# Windows (PowerShell)
-copy llm_model\qwen2.5-coder-32b-instruct-q4_k_m.gguf storage\models\
-
 # Linux/macOS
-cp llm_model/qwen2.5-coder-32b-instruct-q4_k_m.gguf storage/models/
+cp /pfad/zu/qwen2.5-coder-32b-instruct-q4_k_m.gguf storage/models/
+
+# Windows (PowerShell)
+copy C:\Pfad\zu\qwen2.5-coder-32b-instruct-q4_k_m.gguf storage\models\
 ```
 
-Nicht in Git pushen (in `.gitignore`).
+**Nicht in Git pushen** – in `.gitignore` ausgeschlossen.

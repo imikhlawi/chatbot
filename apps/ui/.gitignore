@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+.next/
+out/
+build/
+
+# Env (local only)
+.env.local
+.env*.local
+
+# Debug / IDE
+npm-debug.log*
+.DS_Store

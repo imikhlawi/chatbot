@@ -6,11 +6,13 @@ from typing import List, Optional, Literal
 class IngestResponse(BaseModel):
     doc_id: str
     filename: str
+    bytes: int
+    pages: int
     chunks: int
-    pages: Optional[int] = None
     collection: str
-    status: Literal["indexed", "skipped", "error"]
+    status: Literal["indexed", "skipped"]
     warnings: List[str] = Field(default_factory=list)
+    elapsed_ms: int
 
 
 class Citation(BaseModel):

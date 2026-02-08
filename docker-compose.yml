@@ -36,7 +36,8 @@ services:
       - chroma
     environment:
       - ENV=local
-      # Im Docker-Netz: Chroma unter Servicename, Container-Port 8000
+      # Im Docker-Netz: LLM und Chroma unter Servicenamen
+      - LLM_BASE_URL=http://llm:8080
       - CHROMA_HOST=chroma
       - CHROMA_PORT=8000
     volumes:

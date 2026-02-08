@@ -1,174 +1,136 @@
 # PDF-Chatbot (RAG + lokales LLM)
 
-**Erste Version** – Ein Chatbot, der Fragen zu deinen PDF-Dokumenten beantwortet (RAG) und bei allgemeinen Fragen frei antwortet. Läuft vollständig lokal (Embeddings, Vector-Store, LLM). Weitere Features sind geplant.
+Chatbot, der Fragen zu deinen PDF-Dokumenten beantwortet (RAG) und mit einem **lokalen LLM** (llama.cpp) antwortet. Läuft vollständig lokal: FastAPI, ChromaDB, sentence-transformers, optionales Jupyter-Notebook.
 
 ---
 
-## Was es kann
+## Was drin ist
 
-- **Fragen zu deinen PDFs:** Sucht relevante Abschnitte und antwortet nur auf Basis dieses Kontexts. Zeigt die gefundenen Stellen und eine KI-Zusammenfassung.
-- **Allgemeine Fragen:** Wenn die Eingabe nicht zu den PDF-Inhalten passt, antwortet die KI frei (z. B. Code, Erklärungen). Ausgabe wird gestreamt.
-- **Lokal:** Kein Cloud-API, kein API-Key. Genutzt werden: LangChain, FAISS, sentence-transformers, ein GGUF-Modell über llama-cpp-python.
+| Komponente | Beschreibung |
+|------------|--------------|
+| **API** (FastAPI) | Health, RAG (Ingest, Chat mit Streaming), Briefing, Docs-Verwaltung |
+| **LLM** | llama.cpp Server (Docker), GGUF-Modell |
+| **Chroma** | Vector-Store für PDF-Chunks |
+| **UI** (Next.js) | Diagnose, Upload, Chat (Echtzeit-Streaming), Docs-Verwaltung |
+| **Notebook** | Alternative: Jupyter mit FAISS (ohne Docker) |
 
 ---
 
-## Voraussetzungen
+## Quick Start (Docker + UI)
 
-- Python 3.8 (damit getestet)
-- Genug RAM (z. B. 32B-Modell: grob 20 GB+; 7B deutlich weniger)
-- Platz für Modell und Abhängigkeiten (mehrere GB)
+**Voraussetzung:** Docker (z. B. Docker Desktop), Node.js für die UI.
+
+### 1. Modell ablegen
+
+GGUF-Modell (z. B. [Qwen2.5-Coder-Instruct-GGUF](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct-GGUF)) herunterladen und nach `storage/models/` legen. In `docker-compose.yml` ist derzeit z. B. `qwen2.5-coder-32b-instruct-q4_k_m.gguf` eingetragen – Dateiname anpassen oder Modell entsprechend benennen.
+
+### 2. API + LLM + Chroma starten
+
+Im **Projektroot** (Ordner mit `docker-compose.yml`):
+
+```bash
+docker compose up -d --build
+```
+
+Nach 1–2 Minuten (Modell lädt): API unter **http://localhost:8000**, Doku unter **http://localhost:8000/docs**.
+
+### 3. Konfiguration API (optional)
+
+```bash
+cp apps/api/.env.example apps/api/.env
+```
+
+Anpassen nach Bedarf (z. B. `LLM_BASE_URL`, `CHROMA_HOST`, `CORS_ORIGINS`, `API_KEY`). Ohne `.env` nutzt die API die Defaults aus dem Code; Docker setzt `LLM_BASE_URL` und Chroma-Host/Port automatisch.
+
+### 4. UI starten (lokal)
+
+```bash
+cd apps/ui
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+Browser: **http://localhost:3000**
+
+- **Home:** „Check deps“ → API/LLM/Chroma-Status
+- **Upload:** PDF hochladen → Ingest → `doc_id` für Chat
+- **Chat:** Frage stellen → Antwort kommt per Echtzeit-Stream
+- **Docs:** Chunks anzeigen, Dokument per `doc_id` löschen
+
+### 5. PDFs
+
+PDFs in `data/` legen (fürs Notebook) oder direkt in der UI unter **Upload** hochladen.
 
 ---
 
 ## Projektstruktur
 
 ```
-Chatbot/
-├── data/                 → PDF-Dateien hier ablegen (nicht im Repo)
-├── llm_model/            → GGUF-Modell hier ablegen (nicht im Repo)
-├── faiss_index/         → Wird beim ersten Lauf erzeugt (lokal)
-├── pdf_chatbot.ipynb     → Hauptnotebook
-├── requirements.txt
+├── docker-compose.yml      # API, LLM, Chroma
+├── apps/
+│   ├── api/                # FastAPI (RAG, Briefing, Health)
+│   │   ├── .env.example
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   └── app/
+│   └── ui/                 # Next.js (Upload, Chat, Docs)
+│       ├── .env.example
+│       ├── package.json
+│       └── src/
+├── data/                   # PDFs (optional, für Notebook)
+├── storage/
+│   ├── models/             # GGUF-Modell (nicht im Repo)
+│   └── chroma/             # Chroma-Daten (lokal, nicht im Repo)
+├── pdf_chatbot.ipynb       # Jupyter-Variante (FAISS)
+├── requirements.txt        # Für Notebook
+├── START-HIER.md           # Troubleshooting / Start-Checkliste
 └── README.md
 ```
 
-`data/` und `llm_model/` enthalten im Repo nur kurze READMEs; PDFs und Modell-Dateien liegen bei dir und werden nicht hochgeladen.
+---
+
+## API-Endpoints (Kurz)
+
+| Methode | Pfad | Beschreibung |
+|---------|------|--------------|
+| GET | `/health` | Liveness |
+| GET | `/health/deps` | LLM-, Chroma-, Embeddings-Status |
+| POST | `/api/rag/ingest` | PDF-Upload → Chroma |
+| POST | `/api/rag/chat` | RAG-Chat (vollständige Antwort) |
+| POST | `/api/rag/chat/stream` | RAG-Chat (Echtzeit-Stream) |
+| GET | `/api/rag/docs` | Collection + Chunk-Anzahl |
+| DELETE | `/api/rag/docs/{doc_id}` | Dokument löschen |
+| POST | `/api/text/briefing` | Smart Briefing (Freitext) |
+
+Details und Swagger: **http://localhost:8000/docs**
 
 ---
 
-## Einrichtung
+## Nicht im Repo (`.gitignore`)
 
-### 1. Virtuelle Umgebung (empfohlen)
-
-```bash
-python -m venv venv
-# Windows:
-venv\Scripts\activate
-# Linux/macOS:
-# source venv/bin/activate
-```
-
-### 2. Abhängigkeiten
-
-```bash
-pip install -r requirements.txt
-```
-
-Für **GPU** (CUDA) mit llama-cpp-python vor dem Install z. B.:
-
-```bash
-set CMAKE_ARGS=-DGGML_CUDA=on
-pip install llama-cpp-python --force-reinstall --no-cache-dir
-```
-
-### 3. NLTK (optional vorab)
-
-Wird im Notebook bei Bedarf nachgeladen. Ohne Internet vorher:
-
-```bash
-python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
-```
-
-### 4. Modell
-
-- GGUF-Modell z. B. von [Qwen2.5-Coder-Instruct-GGUF](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct-GGUF) (oder 7B-Variante) herunterladen.
-- `.gguf`-Datei in `llm_model/` legen.
-- Im Notebook in der Zelle „Lokales LLM laden“ den Pfad anpassen, falls der Dateiname abweicht (Standard: `llm_model/qwen2.5-coder-32b-instruct-q4_k_m.gguf`).
-
-### 5. PDFs
-
-- PDF-Dateien in `data/` legen.
-- Das Notebook lädt alle `*.pdf` aus `data/` und baut daraus den FAISS-Index.
+- `storage/models/*.gguf`, `*.bin` – Modell-Dateien
+- `storage/chroma/*` – Chroma-Daten
+- `data/*.pdf` – PDF-Dateien
+- `apps/api/.env`, `apps/ui/.env.local` – lokale Konfiguration
+- `venv/`, `node_modules/`, `.next/` – Umgebungen und Builds
+- Interne Notizen/Skripte (z. B. `TEST-BEFEHLE.md`, `scripts/`)
 
 ---
 
-## Nutzung
+## Alternative: Jupyter-Notebook
 
-1. Jupyter starten und `pdf_chatbot.ipynb` öffnen.
+Ohne Docker kannst du nur das Notebook nutzen:
 
-2. Zellen **der Reihe nach** ausführen:
-   - Imports & NLTK
-   - Konfiguration (`FAISS_INDEX_PATH`)
-   - PDF laden (`load_pdf("data/")`) und aufteilen (`text_splitter`)
-   - Embeddings laden
-   - FAISS-Index erzeugen und speichern (beim ersten Mal)
-   - LLM laden (LlamaCpp)
-   - RAG-Kette (RetrievalQA); lädt bei Bedarf den Index von Disk
-   - Falls vorhanden: Chat-Zelle für Fragen
+1. `python -m venv venv` und aktivieren
+2. `pip install -r requirements.txt`
+3. GGUF in `llm_model/` oder `storage/models/`, PDFs in `data/`
+4. `jupyter notebook pdf_chatbot.ipynb` – Zellen nacheinander ausführen
 
-3. **Erster Lauf:** Index-Bau aus den PDFs kann einige Minuten dauern.
-
-4. **Später:** Wenn `faiss_index/` existiert, kann die RAG-Zelle den Index laden, ohne die PDF-Zellen erneut auszuführen.
-
----
-
-## Ablauf (technisch)
-
-| Schritt | Bedeutung |
-|--------|-----------|
-| `load_pdf("data/")` | Lädt alle PDFs (PyPDFLoader). |
-| `text_splitter(...)` | Chunks (z. B. 1000 Zeichen, 200 Überlappung). |
-| HuggingFace-Embeddings | Vektoren für die Chunks (sentence-transformers). |
-| FAISS | Vector-Store, schnelle Ähnlichkeitssuche. |
-| LlamaCpp | GGUF-Modell für Antworten. |
-| RetrievalQA | Sucht Chunks, LLM antwortet nur aus diesem Kontext (RAG). |
-| Chat | PDF-Frage → RAG; sonst → freie KI-Antwort (gestreamt). |
-
----
-
-## Einstellungen im Notebook
-
-- **`FAISS_INDEX_PATH`** – Wo der FAISS-Index liegt (Standard: `./faiss_index`).
-- **LLM:** `model_path`, `n_ctx`, `max_tokens`, `temperature`, `repeat_penalty`. Bei wenig RAM/CPU: kleineres Modell oder kleinere `max_tokens`/`n_ctx`.
-- **RAG:** `search_kwargs={"k": 2}` – Anzahl Chunks pro Frage. Größeres `k` = mehr Kontext, evtl. langsamer.
-- **Chat (falls vorhanden):** `NUR_PDF` (nur PDF-Abschnitte, ohne LLM), `PDF_RELEVANZ_SCHWELLE` (ab wann „allgemeine Frage“).
-
----
-
-## Nicht ins Repo
-
-- Modelle (`llm_model/*.gguf`, `*.bin`) – zu groß.
-- PDFs (`data/*.pdf`) – Datenschutz/Urheberrecht.
-- `faiss_index/` – wird lokal aus PDFs erzeugt.
-- Caches, `.ipynb_checkpoints/` – in `.gitignore`.
-
----
-
-## Häufige Probleme
-
-- **Import-Fehler (langchain, …)**  
-  `pip install -r requirements.txt` in derselben Umgebung wie Jupyter.
-
-- **„nltk has no attribute 'data'“**  
-  Vorher: `nltk.download("punkt")`, `nltk.download("punkt_tab")`.
-
-- **Zu viel RAM / zu langsam**  
-  Kleineres Modell (z. B. 7B) oder kleinere `max_tokens`/`n_ctx`.
-
-- **Antworten zu kurz**  
-  `max_tokens` in der LLM-Zelle erhöhen.
-
-- **Keine Chat-Zelle**  
-  In dieser Version kann das Notebook je nach Stand nur bis zur RAG-Kette gehen; Chat-Logik ggf. manuell ergänzen (Schleife mit `input`, `qa_chain`/`llm`).
+Das Notebook nutzt FAISS als Vector-Store und llama-cpp-python direkt (kein separater HTTP-Server).
 
 ---
 
 ## Lizenz / Nutzung
 
 Privat und edukativ. Lizenzen der verwendeten Modelle und Daten beachten.
-
----
-
-## Kurzfassung
-
-```bash
-# Im Projektordner:
-python -m venv venv
-venv\Scripts\activate          # Windows; Linux/macOS: source venv/bin/activate
-pip install -r requirements.txt
-# GGUF in llm_model/, PDFs in data/
-jupyter notebook pdf_chatbot.ipynb
-# Zellen nacheinander ausführen.
-```
-
-Kein Clone-Link – das Repo enthält nur Code und Anleitung; Modell und PDFs bringst du selbst mit.

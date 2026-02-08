@@ -55,6 +55,11 @@ body.json
 *.bak
 *.log
 
+# Node (Build / Dependencies)
+node_modules/
+.next/
+out/
+
 # Intern / nur für lokale Entwicklung (nicht ins Repo)
 TEST-BEFEHLE.md
 BEFEHLE-KI-TEST.md
